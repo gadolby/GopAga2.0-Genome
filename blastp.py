@@ -1,17 +1,22 @@
+# blastp.py
+# - Pulls gene family members of a specified gene family for a specified organism using reference sequences
+#
+# Requires : Python v3.1, Biopython v1.7.3
+# -----------------------------------------------------------------------
+
 import re
 import subprocess
 from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
 
-# Identify the desired organism to pull from
+# Identify the BLAST database for the organism to be searched
 
-organism = input("What organism do you want to pull from? ")
-organism_db = organism + "Pro"
+organism_db = input("What organism database do you want to pull from? ")
 
-results_file = organism + "_results.txt"
+results_file = organism_db + "_results.txt"
 blast_results = open(results_file, 'w')
 
-# Identify which gene family to pull from specified organism
+# Identify the gene family text file to be used. Gene family text files must be comma-separated lists of all gene family members.
 
 gene_family = input("What gene family would you like to pull? ")
 gene_family_file = open(gene_family + ".txt", 'r')
@@ -31,15 +36,15 @@ organism_file = open(gene_family + '_' + organism + ".fa", 'w+')
 
 for gene in genes:
 
-	# Identify which files will contain the human artifact and which will contain specified organism artifact
+	# Identify which files will contain the reference sequence and which will contain specified organism sequence
 
-	human_file = gene + "_Hsap.fasta"
+	ref_file = gene + "_ref.fasta"
 	id_file = gene + "_" + organism
 	protein_file = id_file + ".fa"
 
 	# Scout out the top five blastp results
 	
-	blastp_scout = subprocess.Popen(['blastp', '-db', organism_db, '-query', human_file, '-out', 'blast', '-num_descriptions', '5', '-num_alignments', '0'])
+	blastp_scout = subprocess.Popen(['blastp', '-db', organism_db, '-query', ref_file, '-out', 'blast', '-num_descriptions', '5', '-num_alignments', '0'])
 	blastp_scout.wait()
 
 	blast = open('blast', 'r')
@@ -47,7 +52,7 @@ for gene in genes:
 	blast.seek(0)
 	blast_results.write(blast.read())
 
-	# Identify which result seems to be a best fit for this blast search
+	# Identify which result (1-5) seems to be a best fit for this blast search. If none seem like a good fit, skip with input '0'
 
 	best_fit = input("Which result would you like to pull? Press 0 to skip gene. ")
 
@@ -57,7 +62,7 @@ for gene in genes:
 
 		# Gather top five result ids from blastp
 
-		blastp_gather = subprocess.Popen(['blastp', '-db', organism_db, '-query', human_file, '-outfmt', '6 sallacc', '-out', id_file, '-max_target_seqs', '5'])
+		blastp_gather = subprocess.Popen(['blastp', '-db', organism_db, '-query', ref_file, '-outfmt', '6 sallacc', '-out', id_file, '-max_target_seqs', '5'])
 		blastp_gather.wait()
 
 		# Open the id file, split all of the ids, pull the desired id, and rewrite the file
@@ -81,8 +86,6 @@ for gene in genes:
 
 		blastdbcmd = subprocess.Popen(['blastdbcmd', '-db', organism_db, '-entry_batch', id_file, '-outfmt', '%f', '-out', protein_file])
 		blastdbcmd.wait()
-
-		# Change description of pulled FASTA to something more explanatory
 
 		# Write to organism file for compilation
 

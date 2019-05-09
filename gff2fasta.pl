@@ -1,3 +1,11 @@
+# gff2fasta.pl
+# Original GitHub : https://github.com/ISUgenomics/common_scripts/blob/master/gff2fasta.pl
+# - Parses through genome FASTA and GFF annotation to pull various sequence data
+# 
+# Changes : Output peptide FASTA records contain information on gene start, end, strand, and scaffold for SynChro
+# Requires : BioPerl 1.007001
+# -----------------------------------------------------------------------------------------------------------------
+
 #!/usr/bin/perl
 use strict;
 use warnings;
@@ -46,8 +54,8 @@ while ( my $line = <GFF> ) {
         my $gene_seq = $db->seq( $array[0], $gene_start, $gene_end );
         my $output_gene = Bio::Seq->new(
             -seq        => $gene_seq,
-            -id         => $gene_name . ' ' . $gene_start . ' ' . $gene_end . ' ' . $array[6] . ' ' . $array[0],
-            -display_id => $gene_name . ' ' . $gene_start . ' ' . $gene_end . ' ' . $array[6] . ' ' . $array[0],
+            -id         => $gene_name
+            -display_id => $gene_name
             -alphabet   => 'dna',
         );
 
@@ -101,6 +109,7 @@ while ( my $line = <GFF> ) {
 
         my $output_cds = Bio::Seq->new(
             -seq        => $mergedCDS_seq,
+            # New additions to the script. Gene start, end, strand, and scaffold in the IDs of each record.
             -id         => $mRNA_name . ' ' . $array[3] . ' ' . $array[4] . ' ' . $array[6] . ' ' . $array[0],
             -display_id => $mRNA_name . ' ' . $array[3] . ' ' . $array[4] . ' ' . $array[6] . ' ' . $array[0],
             -alphabet   => 'dna',
