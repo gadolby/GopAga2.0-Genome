@@ -6,22 +6,24 @@
 
 import re
 import subprocess
+import sys
+import os
 from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
 
 # Identify the BLAST database for the organism to be searched
 
-organism_db = input("What organism database do you want to pull from? ")
+organism_db = sys.argv[1]
 
 results_file = organism_db + "_results.txt"
 blast_results = open(results_file, 'w')
 
-# Identify the gene family text file to be used. Gene family text files must be comma-separated lists of all gene family members.
+# Identify the gene family text file to be used. Gene family text files must have one gene family member name per line.
 
-gene_family = input("What gene family would you like to pull? ")
-gene_family_file = open(gene_family + ".txt", 'r')
-genes = gene_family_file.read().split(",")
-del(genes[-1])
+gene_family = sys.argv[2]
+with open(sys.argv[3]) as f:
+	genes = f.readlines()
+genes = [x.strip() for x in genes]
 
 # Define function to remove duplicates from id list
 
@@ -32,19 +34,23 @@ def remove_duplicates(ids):
            newlist.append(value)
     return newlist
 
-organism_file = open(gene_family + '_' + organism + ".fa", 'w+')
+organism_file = open(gene_family + '_' + organism_db + ".fa", 'w+')
+reference = gene_family + "_ref.fasta"
+ref_file = SeqIO.parse(reference, 'fasta')
+i = 0
 
-for gene in genes:
+for gene in ref_file:
 
 	# Identify which files will contain the reference sequence and which will contain specified organism sequence
 
-	ref_file = gene + "_ref.fasta"
-	id_file = gene + "_" + organism
+	id_file = genes[i] + "_" + organism_db
 	protein_file = id_file + ".fa"
+	SeqIO.write(gene,"temp.fa","fasta")
+	i += 1
 
 	# Scout out the top five blastp results
 	
-	blastp_scout = subprocess.Popen(['blastp', '-db', organism_db, '-query', ref_file, '-out', 'blast', '-num_descriptions', '5', '-num_alignments', '0'])
+	blastp_scout = subprocess.Popen(['blastp', '-db', organism_db, '-query', 'temp.fa', '-out', 'blast', '-num_descriptions', '5', '-num_alignments', '0'])
 	blastp_scout.wait()
 
 	blast = open('blast', 'r')
@@ -57,13 +63,15 @@ for gene in genes:
 	best_fit = input("Which result would you like to pull? Press 0 to skip gene. ")
 
 	blast.close()
+	os.remove("blast")
 
 	if int(best_fit) != 0:
 
 		# Gather top five result ids from blastp
 
-		blastp_gather = subprocess.Popen(['blastp', '-db', organism_db, '-query', ref_file, '-outfmt', '6 sallacc', '-out', id_file, '-max_target_seqs', '5'])
+		blastp_gather = subprocess.Popen(['blastp', '-db', organism_db, '-query', 'temp.fa', '-outfmt', '6 sallacc', '-out', id_file, '-max_target_seqs', '5'])
 		blastp_gather.wait()
+		os.remove("temp.fa")
 
 		# Open the id file, split all of the ids, pull the desired id, and rewrite the file
 
@@ -96,6 +104,8 @@ for gene in genes:
 			SeqIO.write(record, "file.fa", 'fasta')
 			record_open = open('file.fa', 'r')
 			organism_file.write(record_open.read())
+		os.remove("file.fa")
+		os.remove(protein_file)
 
 
 
