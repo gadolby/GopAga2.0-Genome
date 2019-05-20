@@ -2,7 +2,7 @@
 # Original GitHub : https://github.com/ISUgenomics/common_scripts/blob/master/gff2fasta.pl
 # - Parses through genome FASTA and GFF annotation to pull various sequence data
 # 
-# Changes : Output peptide FASTA records contain information on gene start, end, strand, and scaffold for SynChro
+# Changes to original script : Output peptide FASTA records contain information on gene start, end, strand, and scaffold for SynChro
 # Requires : BioPerl 1.007001
 # -----------------------------------------------------------------------------------------------------------------
 

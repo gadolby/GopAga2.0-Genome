@@ -1,6 +1,12 @@
 # Automating gene family evolution analyses
 
+**_This tutorial takes a list of homologous genes of interest, BLASTs to obtain these sequences from NCBI, combines the outputs, and aligns them with ClustalW._** _Here we use this protocol to get 10 Toll-Like Receptor genes from tetrapods with available genomes on NCBI (N=22). We divide the sequences into TLR gene subfamilies (known a priori), and use the auto-alignments to generate gene family trees_
+
+
+
 ### Step 1: Clone in GitHub repository at https://github.com/mmoral31/GopAga2.0-Genome.git
+
+_The scripts will run straight out of the box (note—these were only tested on unix and linux platforms)_
 
 ```bash
 > git clone https://github.com/mmoral31/GopAga2.0-Genome.git
@@ -12,17 +18,25 @@
 
 > Requires BLAST+
 
-if you want to query against whole proteomes, search for the target species on NCBI and pull protein FASTAs (reference: *Chelonia mydas*)
+if you want to query against whole proteomes, search for the target species on NCBI and pull protein FASTAs (e.g., *Chelonia mydas*)
 
 ```bash
 > makeblastdb -in GCF_000344595.1_CheMyd_1.0_protein.faa -dbtype prot -parse_seqids -out CmydPro
 ```
 
+**_repeat for each species you want to have these genes for_**
 
 
-### Step 3: Gather query reference sequences in a single FASTA and set up input text file with gene names
 
-determine the query sequences to be used and place into a single FASTA file labelled as {gene family}_ref.fasta where {gene family} is the name given to the group of genes used as a query (reference: TLR_ref.fasta)
+### Step 3: Set up query sequences nd input file
+
+**Need to:** 
+
+**1)** combine query reference sequences in a single FASTA, and 
+
+**2)** set up input text file with gene names
+
+determine the query sequences to be used and place into a single FASTA file labeled as {gene family}_ref.fasta where {gene family} is the name given to the group of genes used as a query (e.g., TLR_ref.fasta)
 
 ```
 >NP_003256.1 toll-like receptor 3 precursor [Homo sapiens]
@@ -70,7 +84,7 @@ ELVAKLEDPREKHFNLCLEERDWLPGQPVLENLSQSIQLSKKTVFVMTDKYAKTENFKIAFYLSHQRLMD
 EKVDVIILIFLEKPFQKSKFLQLRKRLCGSSVLEWPTNPQAHPYFWQCLKNALATDNHVAYSQVFKETV
 ```
 
-create a text file with each line containing the name of one gene family member in the order of the reference FASTA (reference: TLR.txt)
+create a text file with each line containing the name of one gene family member in the order of the reference FASTA (e.g., TLR.txt)
 
 ```
 TLR3
@@ -80,18 +94,18 @@ TLR7
 
 
 
-### Step 4: Use blastp.py to extract gene family members from the target species
+### Step 4: Use _blastp.py_ to extract genes from the target species
 
 > Requires BLAST+ and Biopython
 
 blastp.py takes three parameters in this order:
 
-- name of the created BLAST database without suffix (reference: CmydPro)
-- name of the gene family for query (reference: TLR). this is important for distinguishing the reference FASTA (reference: TLR_ref.fasta)
-- name of the gene family text file (reference: TLR.txt)
+- name of the created BLAST database without suffix (e.g., CmydPro)
+- name of the gene family for query (e.g., tlr). this is important for distinguishing the reference FASTA (e.g., TLR_ref.fasta)
+- name of the gene family text file (e.g., TLR.txt)
 
 ```bash
-> python blastp.py CmydPro TLR TLR.txt
+> python blastp.py CmydPro tlr TLR.txt
 ```
 
 this will output one file per gene family member to record standard output BLAST results and one aggregate file with all pulled sequences from the target species.
@@ -102,7 +116,7 @@ this will output one file per gene family member to record standard output BLAST
 
   
 
-### Step 5: Use pull_id_match.py to separate gene family into subfamilies for alignment
+### Step 5: Use _pull_id_match.py_ to separate output into subfamilies for analysis
 
 > Requires Biopython
 
@@ -110,9 +124,9 @@ if the gene family of interest has separate subfamilies (as in TLRs), use pull_s
 
 pull_id_match.py takes three parameters in this order:
 
-- name of the FASTA file to extract from (reference: TLR_CmydPro.fa)
-- name of the text file with listed keywords to pull with (reference: TLR3SF.txt)
-- name of the output file where pulled sequences will aggregate (reference: TLR3SF.fa)
+- name of the FASTA file to extract from (e.g., TLR_CmydPro.fa)
+- name of the text file with listed keywords to pull with (e.g., TLR3SF.txt)
+- name of the output file where pulled sequences will aggregate (e.g., TLR3SF.fa)
 
 the text file will have one keyword on each line. the FASTA output will include any records that matched at least one of the keywords in the list.
 
@@ -127,7 +141,7 @@ TLR4
 
 
 
-### Step 6: Use run_alignments.py to align respective subfamilies with ClustalW
+### Step 6: Use _run_alignments.py_ to align respective subfamilies with ClustalW
 
 > Requires ClustalW2
 
@@ -135,7 +149,7 @@ subfamilies need to be aligned in order to proceed with phylogenetic reconstruct
 
 run_alignments.py takes one parameter:
 
-- name of the text file with listed names of FASTA files (without suffix) to be aligned (reference: TLR_align.txt)
+- name of the text file with listed names of FASTA files (without suffix) to be aligned (e.g., TLR_align.txt)
 
 ```
 TLR3SF
@@ -149,7 +163,9 @@ three alignment files are output in three formats: FASTA, NEXUS, PHYLLIP
 
 
 
-### Step 7: Use Prottest to determine the best substitution matrix for maximum likelihood phylogenetic reconstruction
+### Step 7: Determine substitution model
+
+Here we used Prottest to determine the best substitution matrix for tree reconstruction
 
 > Requires ProtTest
 
@@ -161,5 +177,7 @@ maximum likelihood phylogenetic reconstruction requires a specified substitution
 
 
 
-### Step 8: Use the CIPRES Science Gateway with RaxxML and MrBayes to phylogenetically reconstruct respective subfamilies with maximum likelihood and Bayesian methods
+### Step 8: Generate gene family trees 
+
+Here, we used the CIPRES Science Gateway https://www.phylo.org/portal2 (running RaxxML and MrBayes) to generate ML and Bayesian subfamily trees.
 

@@ -8,13 +8,13 @@ import re
 import sys
 import subprocess
 
-# Asks user to input FASTA file names (without suffix) to be aligned (separately) until nothing is input
+# Parses through input text file with list of FASTA files to align respectively and inputs into array
 
 with open(sys.argv[1]) as f:
 	categories = f.readlines()
 categories = [x.strip() for x in categories]
 
-# Takes each FASTA file and aligns using ClustalW2 with FASTA output then NEXUS output
+# Takes each FASTA file and aligns using ClustalW2 with FASTA, Nexus, and Phylip output
 
 for cat in categories:
 	cat_file = cat + ".fa"
