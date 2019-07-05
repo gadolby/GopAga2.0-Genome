@@ -32,13 +32,13 @@ if you want to query against whole proteomes, search for the target species on N
 
 **Need to:** 
 
-**1) combine query reference sequences into a single FASTA**
+**1) combine query sequences into a single FASTA**
 
 ​	_in this case we’re using TLR protein sequences from human. You want to pick a query taxon that is well curated (i.e. will have the most complete suite of genes with the best orthology assignments)_
 
 **2) set up input text file with gene names**
 
-determine the query sequences to be used and place into a single FASTA file labeled as {gene family}_ref.fasta where {gene family} is the name given to the group of genes used as a query (e.g., TLR_ref.fasta)
+determine the query sequences to be used and place into a single FASTA file labeled as {gene family}_query.fasta where {gene family} is the name given to the group of genes used as a query (e.g., TLR_query.fasta)
 
 e.g., **_query genes:_**
 
@@ -107,7 +107,7 @@ TLR7
 _blastp.py_ takes three parameters in this order:
 
 - name of the created BLAST database _without suffix_ (**e.g., CmydPro**)
-- name of the gene family for query (e.g., tlr). This is important for distinguishing the reference FASTA (**e.g., TLR_ref.fasta**)
+- name of the gene family for query (e.g., tlr). This is important for distinguishing the reference FASTA (**e.g., TLR_query.fasta**)
 - name of the gene family text file (**e.g., TLR.txt**)
 
 ```bash
